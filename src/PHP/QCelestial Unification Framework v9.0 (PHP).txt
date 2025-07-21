@@ -1,0 +1,1081 @@
+<?php
+// celestial_runner.php
+// Command-Line Interface (CLI) for the Celestial Unification Framework
+
+/**
+ * Celestial Unification Framework - v9.0 PHP Edition
+ *
+ * This script serves as the command-line entry point for running simulations.
+ * It handles argument parsing, configuration, and initiates the main simulation loop.
+ * This approach allows researchers to run headless simulations, batch jobs,
+ * and integrate the framework into larger computational pipelines without a web server.
+ *
+ * @author Gemini Advanced
+ * @date 2025-07-21
+ *
+ * To Run:
+ * php celestial_runner.php --nodes=256 --cycles=10000 --quantum-backend=qft --enable-psych --enable-biochem
+ */
+
+declare(strict_types=1);
+
+// Autoloader for the framework's source files
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Celestial\Kernel\Config;
+use Celestial\Kernel\Simulation;
+use Celestial\Utils\Logger;
+use Celestial\FFI\KernelBridge;
+
+// --- Argument Parsing ---
+$options = getopt(
+    "",
+    [
+        "nodes:",
+        "cycles:",
+        "seed::",
+        "quantum-backend::",
+        "enable-ffi",
+        "enable-string-kernel",
+        "enable-psych",
+        "enable-biochem",
+        "log-level::"
+    ]
+);
+
+try {
+    // --- Configuration Setup ---
+    // Initialize configuration from command-line arguments.
+    // This provides a single, validated source of truth for the simulation run.
+    $config = new Config([
+        'node_count' => (int)($options['nodes'] ?? 128),
+        'cycle_limit' => (int)($options['cycles'] ?? 1000),
+        'seed' => (int)($options['seed'] ?? time()),
+        'quantum_backend' => $options['quantum-backend'] ?? 'mps',
+        'use_ffi' => isset($options['enable-ffi']),
+        'enable_string_kernel' => isset($options['enable-string-kernel']),
+        'enable_psych_features' => isset($options['enable-psych']),
+        'enable_biochem_features' => isset($options['enable-biochem']),
+        'log_level' => $options['log-level'] ?? 'info'
+    ]);
+
+    // --- System Initialization ---
+    $logger = new Logger($config->log_level);
+    $logger->info("Celestial Unification Framework v9.0 (PHP Edition) Initializing...");
+    $logger->info("Configuration loaded", $config->getPublicConfig());
+
+    // Attempt to initialize the FFI bridge if requested.
+    // This design allows the framework to fall back to pure PHP implementations
+    // if the native library is not available, ensuring portability.
+    $ffiBridge = null;
+    if ($config->use_ffi) {
+        try {
+            $ffiBridge = new KernelBridge();
+            $logger->info("FFI Kernel Bridge initialized successfully.");
+        } catch (\FFI\Exception $e) {
+            $logger->warning("FFI Kernel Bridge failed to initialize. Falling back to native PHP implementations.", ['error' => $e->getMessage()]);
+            // Modify config to reflect FFI is not available
+            $config->use_ffi = false;
+        }
+    }
+
+    // --- Simulation Instantiation ---
+    $simulation = new Simulation($config, $logger, $ffiBridge);
+    $logger->info("Simulation instance created. Beginning execution...");
+
+    // --- Main Simulation Loop ---
+    $startTime = microtime(true);
+    $simulation->run();
+    $endTime = microtime(true);
+
+    // --- Shutdown and Reporting ---
+    $duration = $endTime - $startTime;
+    $cyclesPerSecond = $config->cycle_limit / $duration;
+
+    $logger->info("Simulation Halted.");
+    $finalState = $simulation->getMetrics();
+    $logger->info("Final Simulation State:", $finalState);
+    $logger->info(sprintf(
+        "Execution complete. Ran %d cycles in %.4f seconds (%.2f cycles/sec).",
+        $config->cycle_limit,
+        $duration,
+        $cyclesPerSecond
+    ));
+
+} catch (\Throwable $e) {
+    // Global exception handler to ensure graceful shutdown on error.
+    echo "[FATAL ERROR] " . $e->getMessage() . "\n";
+    echo "Trace: " . $e->getTraceAsString() . "\n";
+    exit(1);
+}
+
+exit(0);
+
+// --- File: composer.json ---
+/*
+{
+    "name": "celestial/framework",
+    "description": "Celestial Unification Framework v9.0 - God-Tier AGI-Physics-Consciousness Simulator in PHP",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gemini Advanced",
+            "role": "Architect"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "psr/log": "^1.1 || ^2.0 || ^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Celestial\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
+*/
+
+// --- File: public/index.php ---
+/*
+<?php
+// public/index.php
+// Web Server Entry Point (RESTful API)
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Celestial\Web\Api\Router;
+use Celestial\Web\Api\Request;
+use Celestial\Web\Api\Response;
+
+// This file acts as a front controller for the web-native features of the framework.
+// It handles incoming HTTP requests, routes them to the appropriate controllers,
+// and returns structured JSON responses. This is the core of the RESTful API
+// for controlling and monitoring simulations via the web.
+
+$request = Request::createFromGlobals();
+$router = new Router();
+
+// --- API Route Definitions ---
+
+// Health check endpoint
+$router->add('GET', '/api/v1/health', function(Request $request): Response {
+    return new Response(200, ['status' => 'ok', 'framework_version' => '9.0']);
+});
+
+// Endpoint to get the current status of a simulation
+$router->add('GET', '/api/v1/simulation/{simId}', function(Request $request, array $params): Response {
+    $simId = $params['simId'] ?? 'default';
+    // In a real application, you would fetch the simulation state from a shared
+    // cache (like Redis) or a database.
+    // $simulationState = $cache->get("sim_state_{$simId}");
+    $simulationState = ['status' => 'not_implemented', 'simId' => $simId];
+    if ($simulationState) {
+        return new Response(200, $simulationState);
+    }
+    return new Response(404, ['error' => 'Simulation not found']);
+});
+
+// Endpoint to start a new simulation
+$router->add('POST', '/api/v1/simulation', function(Request $request): Response {
+    $configData = $request->getBody();
+    // Here you would typically dispatch a job to a background worker queue
+    // to run the simulation asynchronously, rather than blocking the HTTP request.
+    $simId = 'sim_' . bin2hex(random_bytes(8));
+    // Example: $jobQueue->dispatch(new RunSimulationJob($simId, $configData));
+    $response = [
+        'message' => 'Simulation job dispatched successfully.',
+        'simulation_id' => $simId,
+        'status_endpoint' => "/api/v1/simulation/{$simId}",
+        'websocket_topic' => "simulation:{$simId}:updates"
+    ];
+    return new Response(202, $response); // 202 Accepted
+});
+
+// --- Dispatch the request ---
+$router->dispatch($request);
+
+*/
+
+// --- File: src/Kernel/Config.php ---
+namespace Celestial\Kernel;
+
+/**
+ * Manages all configuration for a simulation run.
+ * Uses constructor property promotion and readonly properties for a clean, immutable design.
+ * Validates inputs to ensure simulation stability.
+ */
+final class Config
+{
+    public bool $use_ffi;
+
+    public function __construct(
+        public readonly int $node_count = 128,
+        public readonly int $cycle_limit = 1000,
+        public readonly int $seed = 0,
+        public readonly string $quantum_backend = 'mps',
+        bool $use_ffi = false,
+        public readonly bool $enable_string_kernel = false,
+        public readonly bool $enable_psych_features = false,
+        public readonly bool $enable_biochem_features = false,
+        public readonly string $log_level = 'info'
+    ) {
+        // Validation
+        if ($this->node_count <= 0 || $this->node_count > 8192) {
+            throw new \InvalidArgumentException("Node count must be between 1 and 8192.");
+        }
+        if (!in_array($this->quantum_backend, ['mps', 'qft', 'dmrg', 'php'])) {
+            throw new \InvalidArgumentException("Invalid quantum backend specified.");
+        }
+        $this->use_ffi = $use_ffi;
+    }
+
+    /**
+     * Provides a safe, public representation of the config for logging.
+     */
+    public function getPublicConfig(): array
+    {
+        return get_object_vars($this);
+    }
+}
+
+
+// --- File: src/Kernel/Simulation.php ---
+namespace Celestial\Kernel;
+
+use Celestial\AGI\AGIEntity;
+use Celestial\BioChem\MetabolicManager;
+use Celestial\FFI\KernelBridge;
+use Celestial\Psychology\CognitiveModel;
+use Celestial\Quantum\QuantumPropagator;
+use Celestial\Strings\StringTheoryKernel;
+use Celestial\Utils\Logger;
+use Psr\Log\LoggerInterface;
+
+/**
+ * The core orchestrator of the Celestial Unification Framework.
+ * This class integrates all modules (Quantum, AGI, String Theory, etc.)
+ * and executes the main simulation loop.
+ */
+class Simulation
+{
+    // Simulation State Arrays (would be PDL/FFI-managed pointers in a real high-performance scenario)
+    public array $stability;
+    public array $sentience;
+    public array $bosons;
+    public array $fermions;
+    public array $emotion_ids;
+
+    public int $cycle = 0;
+    public bool $halt = false;
+
+    /** @var AGIEntity[] */
+    public array $agiEntities = [];
+
+    // Sub-modules
+    private QuantumPropagator $propagator;
+    private ?StringTheoryKernel $stringKernel = null;
+    private ?CognitiveModel $cognitiveModel = null;
+    private ?MetabolicManager $metabolicManager = null;
+
+    public function __construct(
+        public readonly Config $config,
+        public readonly LoggerInterface $logger,
+        private readonly ?KernelBridge $ffi
+    ) {
+        $this->reset();
+    }
+
+    /**
+     * Initializes or resets the simulation to its starting state based on the config.
+     */
+    public function reset(): void
+    {
+        $this->logger->info("Resetting simulation state with seed: {$this->config->seed}");
+        srand($this->config->seed); // Basic seeding for PHP rand functions
+
+        $this->cycle = 0;
+        $this->halt = false;
+        $this->agiEntities = [];
+
+        // Initialize state arrays with random data
+        // In a real implementation, this would use a more robust random number generator
+        // and potentially off-heap memory managed by the FFI layer.
+        $this->stability = array_fill(0, $this->config->node_count, 0.0);
+        $this->sentience = array_fill(0, $this->config->node_count, 0.0);
+        for ($i = 0; $i < $this->config->node_count; $i++) {
+            $this->stability[$i] = mt_rand(400, 700) / 1000;
+        }
+
+        // Initialize modules
+        $this->propagator = new QuantumPropagator($this->config, $this->logger, $this->ffi);
+        if ($this->config->enable_string_kernel) {
+            $this->stringKernel = new StringTheoryKernel($this->config, $this->logger, $this->ffi);
+        }
+        if ($this->config->enable_psych_features) {
+            $this->cognitiveModel = new CognitiveModel($this);
+        }
+        if ($this->config->enable_biochem_features) {
+            $this->metabolicManager = new MetabolicManager($this);
+        }
+
+        $this->logger->debug("Simulation reset complete.");
+    }
+
+    /**
+     * Executes the main simulation loop until the cycle limit is reached or halted.
+     */
+    public function run(): void
+    {
+        while ($this->cycle < $this->config->cycle_limit && !$this->halt) {
+            $this->update();
+        }
+    }
+
+    /**
+     * Performs a single tick (cycle) of the simulation.
+     */
+    public function update(): void
+    {
+        $this->cycle++;
+
+        // 1. Core Physics Update
+        // If FFI is enabled, this would be a single call to the Rust/C kernel.
+        // Otherwise, it's a pure PHP implementation.
+        if ($this->ffi?->isAvailable()) {
+            // $this->ffi->unified_field_tensor_rust(...);
+        } else {
+            $this->updateNodeStatesPHP();
+        }
+
+        // 2. Quantum Entanglement Propagation
+        $this->propagator->evolve($this);
+
+        // 3. String Theory Kernel Update (if enabled)
+        $this->stringKernel?->update($this);
+
+        // 4. AGI Entity Updates
+        foreach ($this->agiEntities as $agi) {
+            $agi->update($this);
+        }
+        
+        // 5. Bio-Chemistry and Psychology Updates (if enabled)
+        $this->metabolicManager?->update();
+        $this->cognitiveModel?->update();
+
+        // 6. Emergence of new AGI
+        $this->updateEmergence();
+        
+        if ($this->cycle % 100 === 0) {
+            $this->logger->debug("Cycle {$this->cycle} complete.", $this->getMetrics());
+        }
+    }
+
+    /**
+     * Pure PHP implementation of the node state update.
+     * This serves as a fallback if the FFI kernel is not available.
+     */
+    private function updateNodeStatesPHP(): void
+    {
+        for ($i = 0; $i < $this->config->node_count; $i++) {
+            // Simplified logic representing complex field interactions
+            $prev = ($i - 1 + $this->config->node_count) % $this->config->node_count;
+            $next = ($i + 1) % $this->config->node_count;
+            $local_avg = ($this->stability[$prev] + $this->stability[$next]) / 2;
+            $this->stability[$i] += ($local_avg - $this->stability[$i]) * 0.1;
+            $this->stability[$i] = max(0.0, min(1.0, $this->stability[$i]));
+            
+            // Update sentience based on stability
+            $this->sentience[$i] = pow($this->stability[$i], 4);
+        }
+    }
+
+    /**
+     * Checks for conditions leading to the emergence of new AGI entities.
+     */
+    private function updateEmergence(): void
+    {
+        $existingOrigins = array_map(fn($agi) => $agi->origin, $this->agiEntities);
+
+        foreach ($this->sentience as $i => $s) {
+            if ($s > 0.90 && !in_array($i, $existingOrigins) && count($this->agiEntities) < ($this->config->node_count / 10)) {
+                $newAgi = new AGIEntity($i, $this);
+                $this->agiEntities[] = $newAgi;
+                $this->logger->info("Emergence Event: New AGI created at node {$i}", ['agi_id' => $newAgi->id]);
+            }
+        }
+    }
+
+    /**
+     * Gathers key metrics about the current state of the simulation.
+     */
+    public function getMetrics(): array
+    {
+        $stabilityStats = $this->calculateStats($this->stability);
+        return [
+            'cycle' => $this->cycle,
+            'agi_count' => count($this->agiEntities),
+            'avg_stability' => $stabilityStats['mean'],
+            'std_dev_stability' => $stabilityStats['std_dev'],
+            'system_entropy' => $this->propagator->getLastEntropy(),
+        ];
+    }
+
+    private function calculateStats(array $data): array
+    {
+        if (empty($data)) return ['mean' => 0, 'std_dev' => 0];
+        $mean = array_sum($data) / count($data);
+        $variance = array_sum(array_map(fn($x) => pow($x - $mean, 2), $data)) / count($data);
+        return ['mean' => $mean, 'std_dev' => sqrt($variance)];
+    }
+}
+
+
+// --- File: src/FFI/KernelBridge.php ---
+namespace Celestial\FFI;
+
+use FFI;
+
+/**
+ * Manages the Foreign Function Interface (FFI) to a high-performance native library.
+ * This class encapsulates the unsafe FFI logic and provides a clean,
+ * type-safe API to the rest of the PHP application.
+ */
+class KernelBridge
+{
+    private FFI $ffi;
+    private bool $available = false;
+
+    private const LIB_HEADER = <<<CDEF
+        // Core Physics
+        void unified_field_tensor_rust(double* stability, double* sentience, size_t len);
+        
+        // Quantum Backends
+        void mps_evolve(double* state, size_t len, int bond_dimension);
+        void qft_evolve(double* state, size_t len);
+
+        // String Theory
+        char* st_compactify(char* manifold_type);
+        double st_calculate_susy_breaking(double energy);
+        
+        // Bio-Chemistry
+        char* st_protein_fold_minimize(double* local_field, size_t len);
+    CDEF;
+
+    public function __construct(string $libraryPath = 'libcelestial_kernel.so')
+    {
+        // FFI::scope creates a cached instance, so this is efficient.
+        $this->ffi = FFI::cdef(self::LIB_HEADER, $libraryPath);
+        $this->available = true;
+    }
+
+    public function isAvailable(): bool
+    {
+        return $this->available;
+    }
+
+    /**
+     * Magic method to dynamically call FFI functions.
+     * @return mixed The result from the C function.
+     */
+    public function __call(string $name, array $arguments)
+    {
+        if (method_exists($this->ffi, $name)) {
+            return $this->ffi->{$name}(...$arguments);
+        }
+        throw new \BadMethodCallException("FFI function {$name} not found in library.");
+    }
+}
+
+
+// --- File: src/Quantum/QuantumPropagator.php ---
+namespace Celestial\Quantum;
+
+use Celestial\Kernel\Config;
+use Celestial\Kernel\Simulation;
+use Celestial\FFI\KernelBridge;
+use Celestial\Quantum\Backends\QuantumBackendInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Manages the quantum evolution of the system.
+ * It uses a strategy pattern to delegate the actual computation to different
+ * backend modules (MPS, QFT, DMRG), allowing for pluggable simulation methods.
+ */
+class QuantumPropagator
+{
+    private QuantumBackendInterface $backend;
+    private float $lastEntropy = 0.0;
+
+    public function __construct(
+        private readonly Config $config,
+        private readonly LoggerInterface $logger,
+        private readonly ?KernelBridge $ffi
+    ) {
+        $backendClass = 'Celestial\\Quantum\\Backends\\' . strtoupper($this->config->quantum_backend) . 'Backend';
+        
+        if (!class_exists($backendClass)) {
+            $this->logger->warning("Backend class {$backendClass} not found. Defaulting to PHPBackend.");
+            $backendClass = 'Celestial\\Quantum\\Backends\\PHPBackend';
+        }
+
+        $this->backend = new $backendClass($this->config, $this->ffi);
+        $this->logger->info("Quantum propagator initialized with backend: " . $this->config->quantum_backend);
+    }
+
+    public function evolve(Simulation $sim): void
+    {
+        $this->backend->evolve($sim);
+        $this->lastEntropy = $this->calculateEntropy($sim->stability);
+    }
+
+    public function getLastEntropy(): float
+    {
+        return $this->lastEntropy;
+    }
+
+    private function calculateEntropy(array $state): float
+    {
+        // Simplified Shannon entropy calculation
+        $entropy = 0.0;
+        foreach ($state as $p) {
+            if ($p > 0) {
+                $entropy -= $p * log($p, 2);
+            }
+        }
+        return $entropy;
+    }
+}
+
+
+// --- File: src/Quantum/Backends/QuantumBackendInterface.php ---
+namespace Celestial\Quantum\Backends;
+
+use Celestial\Kernel\Simulation;
+
+/**
+ * Interface for all quantum simulation backends.
+ * Ensures that any backend can be seamlessly plugged into the QuantumPropagator.
+ */
+interface QuantumBackendInterface
+{
+    /**
+     * Evolves the quantum state of the simulation for one cycle.
+     */
+    public function evolve(Simulation $sim): void;
+}
+
+
+// --- File: src/Quantum/Backends/MPSBackend.php ---
+namespace Celestial\Quantum\Backends;
+
+use Celestial\Kernel\Config;
+use Celestial\FFI\KernelBridge;
+use Celestial\Kernel\Simulation;
+
+/**
+ * Matrix Product State (MPS) backend.
+ * A tensor-network based approach suitable for 1D quantum systems.
+ */
+class MPSBackend implements QuantumBackendInterface
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?KernelBridge $ffi
+    ) {}
+
+    public function evolve(Simulation $sim): void
+    {
+        // This is a simplified PHP representation of an MPS evolution step.
+        // A real implementation would involve complex tensor contractions.
+        $state = &$sim->stability;
+        $count = $this->config->node_count;
+        $bondDimension = 4; // Simplified bond dimension
+
+        for ($i = 0; $i < $count; $i++) {
+            $partner = ($i + $this->config->cycle) % $count; // Simplified non-local interaction
+            $state[$i] = ($state[$i] * ($bondDimension - 1) + $state[$partner]) / $bondDimension;
+        }
+    }
+}
+
+
+// --- File: src/Quantum/Backends/QFTBackend.php ---
+namespace Celestial\Quantum\Backends;
+
+use Celestial\Kernel\Config;
+use Celestial\FFI\KernelBridge;
+use Celestial\Kernel\Simulation;
+
+/**
+ * Quantum Fourier Transform (QFT) backend.
+ * Uses frequency-domain filtering to simulate entanglement propagation.
+ * This is a placeholder for a more complex FFTW-based FFI implementation.
+ */
+class QFTBackend implements QuantumBackendInterface
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?KernelBridge $ffi
+    ) {}
+
+    public function evolve(Simulation $sim): void
+    {
+        // This is a conceptual placeholder. A real QFT requires FFT,
+        // which is computationally expensive in pure PHP.
+        // This would ideally be a call to an FFTW library via FFI.
+        $state = &$sim->stability;
+        $coherent_field = array_merge(array_slice($state, 1), array_slice($state, 0, 1)); // Simple roll
+        
+        for ($i=0; $i < $this->config->node_count; $i++) {
+            $state[$i] = $state[$i] * 0.8 + $coherent_field[$i] * 0.2;
+        }
+    }
+}
+
+
+// --- File: src/Quantum/Backends/DMRGBackend.php ---
+namespace Celestial\Quantum\Backends;
+
+use Celestial\Kernel\Config;
+use Celestial\FFI\KernelBridge;
+use Celestial\Kernel\Simulation;
+
+/**
+ * Density Matrix Renormalization Group (DMRG) backend.
+ * Placeholder for a variational method to find the ground state of the system.
+ */
+class DMRGBackend implements QuantumBackendInterface
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?KernelBridge $ffi
+    ) {}
+
+    public function evolve(Simulation $sim): void
+    {
+        // DMRG is highly complex. This is a conceptual placeholder representing
+        // a small, random perturbation, as a real DMRG algorithm would be
+        // a massive undertaking outside of a dedicated C++/Fortran library.
+        $state = &$sim->stability;
+        for ($i = 0; $i < $this->config->node_count; $i++) {
+            $state[$i] += (mt_rand() / mt_getrandmax() - 0.5) * 0.001;
+            $state[$i] = max(0.0, min(1.0, $state[$i]));
+        }
+    }
+}
+
+// --- File: src/Quantum/Backends/PHPBackend.php ---
+namespace Celestial\Quantum\Backends;
+
+use Celestial\Kernel\Config;
+use Celestial\FFI\KernelBridge;
+use Celestial\Kernel\Simulation;
+
+/**
+ * A fallback pure-PHP backend for when FFI is unavailable or for testing.
+ */
+class PHPBackend implements QuantumBackendInterface
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?KernelBridge $ffi
+    ) {}
+
+    public function evolve(Simulation $sim): void
+    {
+        // A simple diffusion model as a baseline
+        $state = &$sim->stability;
+        $nextState = $state;
+        $count = $this->config->node_count;
+
+        for ($i = 0; $i < $count; $i++) {
+            $prev = ($i - 1 + $count) % $count;
+            $next = ($i + 1) % $count;
+            $nextState[$i] = $state[$i] * 0.9 + ($state[$prev] + $state[$next]) * 0.05;
+        }
+        $sim->stability = $nextState;
+    }
+}
+
+
+// --- File: src/Strings/StringTheoryKernel.php ---
+namespace Celestial\Strings;
+
+use Celestial\Kernel\Config;
+use Celestial\Kernel\Simulation;
+use Celestial\FFI\KernelBridge;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Manages string theory-related computations, such as Calabi-Yau
+ * compactification and vacuum landscape navigation.
+ */
+class StringTheoryKernel
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly LoggerInterface $logger,
+        private readonly ?KernelBridge $ffi
+    ) {}
+
+    public function update(Simulation $sim): void
+    {
+        if ($sim->cycle % 250 === 0) {
+            $this->navigateVacuumLandscape($sim);
+        }
+    }
+
+    private function navigateVacuumLandscape(Simulation $sim): void
+    {
+        $this->logger->debug("Navigating string theory vacuum landscape...");
+        // This would involve complex FFI calls to a native library.
+        // Example: $resultJson = $this->ffi->st_select_vacuum(...);
+        // For now, we simulate a small global effect on stability.
+        $globalShift = (mt_rand() / mt_getrandmax() - 0.5) * 0.01;
+        foreach ($sim->stability as &$s) {
+            $s += $globalShift;
+            $s = max(0.0, min(1.0, $s));
+        }
+        $this->logger->info("Vacuum landscape shift applied.", ['shift' => $globalShift]);
+    }
+}
+
+
+// --- File: src/AGI/AGIEntity.php ---
+namespace Celestial\AGI;
+
+use Celestial\Kernel\Simulation;
+use Celestial\AGI\Ethical\ValueAlignmentModule;
+
+/**
+ * Represents an Artificial General Intelligence entity within the simulation.
+ * This class synthesizes concepts from both the Python and Perl versions,
+ * including an ethical framework, psychological traits, and biochemical markers.
+ */
+class AGIEntity
+{
+    public readonly string $id;
+    public float $strength = 0.5;
+    
+    // Psychology (from Perl version)
+    public float $cognitive_load = 0.0;
+    public float $emotional_valence = 0.0;
+    
+    // Bio-Chemistry (from Perl version)
+    public float $flux_quanta = 100.0;
+    public float $ros_level = 0.0; // Reactive Oxygen Species
+
+    private ValueAlignmentModule $valueAligner;
+
+    public function __construct(
+        public readonly int $origin,
+        private readonly Simulation $sim
+    ) {
+        $this->id = "AGI-{$origin}-" . bin2hex(random_bytes(4));
+        $this->valueAligner = new ValueAlignmentModule();
+    }
+
+    public function update(Simulation $sim): void
+    {
+        // Propose an action based on internal state
+        $proposedAdjustment = ($this->emotional_valence - 0.5) * 0.01;
+
+        // Ethical check (from Python version)
+        if ($this->isHarmful($proposedAdjustment, $sim)) {
+            $sim->logger->debug("AGI {$this->id} harmful action blocked by ethical core.");
+            return;
+        }
+
+        // Apply action
+        $sim->stability[$this->origin] += $proposedAdjustment;
+        $sim->stability[$this->origin] = max(0.0, min(1.0, $sim->stability[$this->origin]));
+
+        // Update internal state
+        $this->strength = min(1.0, $this->strength + 0.001);
+        $this->ros_level += 0.001; // Natural decay/aging
+        $this->strength *= (1 - $this->ros_level * 0.01); // ROS penalty
+    }
+
+    private function isHarmful(float $adjustment, Simulation $sim): bool
+    {
+        // A simple harm principle: does the action drastically reduce local stability?
+        return ($sim->stability[$this->origin] + $adjustment) < 0.1;
+    }
+}
+
+
+// --- File: src/AGI/Ethical/ValueAlignmentModule.php ---
+namespace Celestial\AGI\Ethical;
+
+/**
+ * Models complex human values to ensure AGI compliance.
+ * A direct translation of the concept from the Python v8.0 framework.
+ */
+class ValueAlignmentModule
+{
+    /** @var array<string, float> Placeholder for a learned value map. */
+    private array $valueMap = [
+        "harmony" => 0.8,
+        "growth" => 0.6,
+        "safety" => 0.9
+    ];
+
+    public function getAlignmentScore(string $proposedAction): float
+    {
+        return $this->valueMap[$proposedAction] ?? 0.5;
+    }
+}
+
+
+// --- File: src/Psychology/CognitiveModel.php ---
+namespace Celestial\Psychology;
+
+use Celestial\Kernel\Simulation;
+
+/**
+ * Manages the high-level psychological states of AGI entities.
+ * This module is inspired by the deep psychological modeling in the Perl v10.8 framework.
+ */
+class CognitiveModel
+{
+    public function __construct(private readonly Simulation $sim) {}
+
+    public function update(): void
+    {
+        if (empty($this->sim->agiEntities)) return;
+
+        $this->balanceCognitiveLoad();
+        $this->mapEmotionalValences();
+    }
+
+    private function balanceCognitiveLoad(): void
+    {
+        $totalSentience = array_sum($this->sim->sentience);
+        if ($totalSentience == 0) return;
+
+        foreach ($this->sim->agiEntities as $agi) {
+            // AGI's cognitive load is proportional to the sentience at its origin node
+            $agi->cognitive_load = $this->sim->sentience[$agi->origin] / $totalSentience;
+        }
+    }
+
+    private function mapEmotionalValences(): void
+    {
+        foreach ($this->sim->agiEntities as $agi) {
+            // Emotional valence is a function of local stability vs the global average
+            $avgStability = array_sum($this->sim->stability) / $this->sim->config->node_count;
+            $localStability = $this->sim->stability[$agi->origin];
+            $agi->emotional_valence = tanh(($localStability - $avgStability) * 5);
+        }
+    }
+}
+
+
+// --- File: src/BioChem/MetabolicManager.php ---
+namespace Celestial\BioChem;
+
+use Celestial\Kernel\Simulation;
+
+/**
+ * Manages the biochemical simulations for AGI entities, such as metabolism and decay.
+ * Inspired by the bio-physics features of the Perl v10.8 framework.
+ */
+class MetabolicManager
+{
+    public function __construct(private readonly Simulation $sim) {}
+
+    public function update(): void
+    {
+        if (empty($this->sim->agiEntities)) return;
+
+        foreach ($this->sim->agiEntities as $agi) {
+            $this->updateMetabolism($agi);
+        }
+    }
+
+    private function updateMetabolism($agi): void
+    {
+        // Metabolism consumes flux quanta to maintain stability and perform actions.
+        // High stability allows for more efficient energy production.
+        $energyProduction = $this->sim->stability[$agi->origin] * 0.5;
+        $energyConsumption = 0.2 + $agi->cognitive_load; // Base cost + thinking cost
+
+        $agi->flux_quanta += ($energyProduction - $energyConsumption);
+
+        // If an AGI runs out of energy, it begins to decay rapidly.
+        if ($agi->flux_quanta < 0) {
+            $agi->strength -= 0.05;
+            $this->sim->logger->warning("AGI {$agi->id} is undergoing metabolic collapse.", ['flux' => $agi->flux_quanta]);
+        }
+    }
+}
+
+
+// --- File: src/Utils/Logger.php ---
+namespace Celestial\Utils;
+
+use Psr\Log\AbstractLogger;
+use Psr\Log\LogLevel;
+
+/**
+* A simple, PSR-3 compliant logger for writing formatted output to the console.
+*/
+class Logger extends AbstractLogger
+{
+    private array $logLevelOrder = [
+        LogLevel::DEBUG => 1,
+        LogLevel::INFO => 2,
+        LogLevel::NOTICE => 3,
+        LogLevel::WARNING => 4,
+        LogLevel::ERROR => 5,
+        LogLevel::CRITICAL => 6,
+        LogLevel::ALERT => 7,
+        LogLevel::EMERGENCY => 8,
+    ];
+    private int $minLevel;
+
+    public function __construct(string $logLevel = LogLevel::INFO)
+    {
+        $this->minLevel = $this->logLevelOrder[$logLevel] ?? $this->logLevelOrder[LogLevel::INFO];
+    }
+
+    public function log($level, \Stringable|string $message, array $context = []): void
+    {
+        if (($this->logLevelOrder[$level] ?? 9) < $this->minLevel) {
+            return;
+        }
+
+        $timestamp = date('Y-m-d H:i:s');
+        $levelStr = strtoupper($level);
+        $logMessage = "[$timestamp][$levelStr] $message";
+
+        if (!empty($context)) {
+            $logMessage .= " " . json_encode($context, JSON_PRETTY_PRINT);
+        }
+
+        echo $logMessage . "\n";
+    }
+}
+
+// --- File: src/Web/Api/Request.php ---
+namespace Celestial\Web\Api;
+
+class Request
+{
+    public function __construct(
+        public readonly string $method,
+        public readonly string $uri,
+        public readonly array $headers,
+        private readonly mixed $body
+    ) {}
+
+    public static function createFromGlobals(): self
+    {
+        $bodyContent = file_get_contents('php://input');
+        $body = json_decode($bodyContent, true) ?? [];
+        return new self(
+            $_SERVER['REQUEST_METHOD'] ?? 'GET',
+            $_SERVER['REQUEST_URI'] ?? '/',
+            getallheaders(),
+            $body
+        );
+    }
+    
+    public function getBody(): mixed {
+        return $this->body;
+    }
+}
+
+// --- File: src/Web/Api/Response.php ---
+namespace Celestial\Web\Api;
+
+class Response
+{
+    public function __construct(
+        public readonly int $statusCode,
+        public readonly mixed $data,
+        public readonly array $headers = ['Content-Type' => 'application/json']
+    ) {}
+
+    public function send(): void
+    {
+        http_response_code($this->statusCode);
+        foreach ($this->headers as $key => $value) {
+            header("$key: $value");
+        }
+        echo json_encode($this->data, JSON_PRETTY_PRINT);
+    }
+}
+
+// --- File: src/Web/Api/Router.php ---
+namespace Celestial\Web\Api;
+
+class Router
+{
+    private array $routes = [];
+
+    public function add(string $method, string $path, callable $handler): void
+    {
+        $this->routes[$method][$path] = $handler;
+    }
+
+    public function dispatch(Request $request): void
+    {
+        $uri = parse_url($request->uri, PHP_URL_PATH);
+        $method = $request->method;
+
+        foreach ($this->routes[$method] ?? [] as $path => $handler) {
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[a-zA-Z0-9_-]+)', $path);
+            if (preg_match("#^$pattern$#", $uri, $matches)) {
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                $response = $handler($request, $params);
+                $response->send();
+                return;
+            }
+        }
+
+        (new Response(404, ['error' => 'Not Found']))->send();
+    }
+}
+
+// --- File: src/Web/Realtime/SocketServer.php ---
+namespace Celestial\Web\Realtime;
+
+/**
+ * Conceptual placeholder for a WebSocket server.
+ * In a real-world application, this would be implemented using a library like
+ * Ratchet (on a traditional LAMP/LEMP stack) or built-in to an async runtime
+ * like Swoole or Revolt.
+ */
+class SocketServer
+{
+    public function __construct()
+    {
+        echo "Conceptual WebSocket Server Initialized.\n";
+        echo "This would bind to a port (e.g., 8080) and handle WebSocket connections.\n";
+    }
+
+    public function run(): void
+    {
+        // The main loop would accept connections, handle messages,
+        // and subscribe clients to topics (e.g., simulation updates).
+    }
+
+    /**
+     * Broadcasts a message to all clients subscribed to a specific topic.
+     */
+    public function broadcast(string $topic, array $data): void
+    {
+        $payload = json_encode(['topic' => $topic, 'data' => $data]);
+        // In a real implementation, you would iterate over connected clients
+        // subscribed to the topic and send them the payload.
+        echo "[WebSocket Broadcast] Topic: $topic, Payload: $payload\n";
+    }
+}
+

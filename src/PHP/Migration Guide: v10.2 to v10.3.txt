@@ -1,0 +1,49 @@
+Migration Guide: v10.2 to v10.3
+Upgrading to the Celestial Unification Framework v10.3 "Integrity Edition" involves critical changes to your environment configuration to support the new security and reliability features.
+
+1. Environment Variable (.env) Changes
+The .env file has been updated with new mandatory variables.
+
+New Mandatory Variables
+These variables must be present in your .env file for the application to start.
+
+FFI_LIBRARY_PATH: The absolute path to your libcelestial_kernel.so file.
+
+FFI_LIBRARY_CHECKSUM: The SHA-256 checksum of your libcelestial_kernel.so file.
+
+DEFAULT_CHECKPOINT_PATH: The path to the SQLite checkpoint database.
+
+LOG_PATH: The path for the application log file.
+
+New Optional Variables
+FFI_SIGNATURE_PUBLIC_KEY_PATH: Path to a GPG-style public key for verifying the signature of the FFI library.
+
+ALLOW_DEGRADED_PHYSICS: Set to true to allow the simulation to run with the NullQuantumKernel if the FFI library is unavailable. The default is false.
+
+Action Required:
+
+Copy the new .env.example to your .env file.
+
+Generate the checksum for your FFI library:
+
+sha256sum /path/to/your/libcelestial_kernel.so
+
+Update your .env file with the correct paths and the generated checksum.
+
+2. Command-Line Interface (CLI) Changes
+New Flags
+--allow-degraded: This flag is now required to allow the simulation to run if the native FFI kernel cannot be loaded. Without this flag, the application will abort. This replaces the old default behavior of silently falling back.
+
+--no-fallback: This flag is deprecated and has no effect. The new default is to not fall back.
+
+Behavior Changes
+The default behavior when the FFI kernel is missing is now to abort. You must explicitly pass --allow-degraded to run with degraded physics.
+
+Numeric inputs like --nodes and --cycles are now validated and will cause the command to fail if they are outside of a sane range.
+
+Action Required:
+
+Review your deployment scripts. If you relied on the silent fallback to the NullQuantumKernel, you must now add the --allow-degraded flag to your sim:run command. It is strongly recommended to fix the FFI library issue instead.
+
+3. Checkpoint Database
+The checkpointing system is more robust but does not require a schema migration from v10.2. However, checkpoints created with v10.3 will contain the full PRNG state and will not be backward-compatible with older versions of the framework. It is recommended to start with a fresh checkpoint file after upgrading.

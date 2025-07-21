@@ -1,0 +1,42 @@
+Changelog: Celestial Unification Framework v10.3
+[10.3.0] - 2025-07-21 - "Integrity Edition"
+This is a major hardening and architectural perfection release. It resolves all known flaws from v10.2 and introduces enterprise-grade reliability, security, and operational features.
+
+Added
+FFI Library Integrity Verification: The KernelBridge now verifies the SHA-256 checksum and a GPG-style signature of the native libcelestial_kernel.so before loading it, preventing supply-chain attacks.
+
+Deep Health Checks: The sim:health command now performs comprehensive checks on FFI integrity, database writability, configuration validity, and PCNTL availability. It supports --json output for operational monitoring.
+
+Explicit Scientific Degradation Flag: The NullQuantumKernel fallback is now only activated if the --allow-degraded CLI flag is explicitly provided. The default behavior is to abort if the native kernel is unavailable.
+
+Comprehensive Test Suite: A testing harness using Pest has been bootstrapped, including unit tests for domain models and integration tests for the persistence layer.
+
+Static Analysis Configuration: A phpstan.neon file is now included, configured for level 9 analysis across the entire codebase.
+
+Changed
+Singleton Configuration: SimulationConfig is now a singleton service within the DI container, ensuring a single, consistent configuration state throughout the application lifecycle.
+
+Full PRNG State Persistence: Checkpoints now save and restore the complete internal state of the \Random\Randomizer engine, guaranteeing perfect deterministic resumption after a stop or crash.
+
+Atomic & Validated Checkpointing: The SqliteCheckpointRepository is now fully implemented with WAL mode, busy timeouts, and atomic BEGIN IMMEDIATE TRANSACTION wrappers for all writes, preventing data corruption and race conditions.
+
+Hardened Configuration Loading: The env() helper now enforces the presence of critical environment variables (FFI_LIBRARY_PATH, DEFAULT_CHECKPOINT_PATH, etc.), aborting on startup if they are missing.
+
+Robust Log Rotation: The Monolog RotatingFileHandler is now correctly configured with a filename pattern and a maximum number of files to prevent unbounded disk usage.
+
+Sanitized Logging: Exception logging now redacts sensitive file paths by default to prevent credential or path exposure.
+
+Validated CLI Inputs: All numeric CLI options (--nodes, --cycles, --seed) are now rigorously validated to be within sane operational ranges.
+
+PRNG Upgrade: The framework now uses PHP 8.2+'s native \Random\Randomizer engine, removing the dependency on random-lib/random.
+
+Fixed
+Graceful Shutdown Determinism: The SIGINT signal handler now immediately persists the PRNG state to a temporary file, which is restored first upon resumption, closing the determinism gap during a graceful shutdown.
+
+FFI __call Allow-List: The security allow-list for FFI function calls has been reinstated in the KernelBridge.
+
+SQLite Connection Handling: The SqliteCheckpointRepository now correctly implements its connect() and load() methods and properly closes the database handle on __destruct.
+
+PCNTL Availability Check: The signal handler registration now correctly checks for the pcntl extension and warns the user if it's unavailable, rather than failing silently.
+
+Seed Collision Vulnerability: The default seed for new simulations is now generated using random_bytes, eliminating the risk of seed collisions in parallel runs.
