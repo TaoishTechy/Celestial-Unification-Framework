@@ -161,6 +161,7 @@ MIT License. See [LICENSE](./LICENSE).
 - [CHANGELOG.md](./CHANGELOG.md) – Version history  
 - [MIGRATION.md](./MIGRATION.md) – Upgrade paths  
 - [SECURITY.md](./SECURITY.md) – Reporting vulnerabilities  
+- [TESTS_2025-07-21_19-50-11_INT_SCAN.md](./blob/main/tests/TESTS_2025-07-21_19-50-11_INT_SCAN.md) - Integrity Test Results (Jul 21 2025)
 
 ---
 
