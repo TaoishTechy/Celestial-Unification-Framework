@@ -1,117 +1,105 @@
-# 🌌 Celestial Unification Framework (CUF) v8.0  
-**The Oracle of Worlds – A God‑Tier Simulator for Emergent AGI Ethics & Quantum Cosmogenesis**
+# Celestial Unification Framework v10.2 🌌
+**Enterprise-Grade AGI & Quantum Physics Simulation Platform**
 
-[![License — MIT + Humanity Clause](https://img.shields.io/badge/license-MIT%20%2B%20Humanity%20Clause-blue.svg)](LICENSE)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](#)
-[![Version 8.0](https://img.shields.io/badge/release-v8.0-purple.svg)](#)
+<div align="center">
+  <img src="https://img.shields.io/badge/Version-10.2_Hardened-blueviolet" alt="Version">
+  <img src="https://img.shields.io/badge/PHP-8.2+-8892BF" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Architecture-Hexagonal-important" alt="Architecture">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+</div>
 
----
+<img width="2885" height="834" alt="deepseek_mermaid_20250721_fcadfc" src="https://github.com/user-attachments/assets/7b52471c-8df1-4ca3-a708-7ba300a14839" />
 
-## ✨ Overview
-CUF is an open‑source Python engine that **spawns entire multiverses in silicon**, modelling the dance among quantum fields, emergent AGI minds and utopian ethics.  
-Version 8.0 upgrades the project from a high‑performance sandbox to a **modular, hardware‑accelerated “god‑tier” research platform**. 
+<img width="1836" height="1146" alt="deepseek_mermaid_20250721_29740c" src="https://github.com/user-attachments/assets/b26da56b-b3f8-48c5-a79f-23d9e5a947ae" />
 
----
+<img width="3948" height="1281" alt="deepseek_mermaid_20250721_d1003a" src="https://github.com/user-attachments/assets/8f8fcdf0-e415-45f2-a366-57deb5f39710" />
 
-## 🚀 Key Features
+## 🚀 Core Capabilities
 
-| Category | Highlight |
-|----------|-----------|
-| **Quantum Simulation** | `QuantumPropagator` with interchangeable back‑ends: **MPS**, **QFT**, DMRG placeholders and hooks for Pennylane / TFQ. |
-| **Massive Scalability** | Optional **CuPy GPU** and **MPI / Ray** distribution → 1 M + nodes on commodity clusters. |
-| **Next‑Gen Ethical Engine** | Counterfactual‑Ethics Distiller, Value‑Alignment Module, Adaptive Pauli Ensemble; AGIs debate & self‑regulate. |
-| **Thermodynamic Ledger** | Conserved free‑energy budget turns every universe into a playable survival puzzle. |
-| **Explainability** | Explainable‑Quantum‑Graph Monitor, planned SHAP/LIME dashboard pipeline. |
-| **Narrative Engine** | Built‑in Storyteller weaves events into emergent sagas worthy of space‑opera myth. |
-| **Full‑state Reproducibility** | Spectral‑compression (DCT) checkpoints via MsgPack + Zstd for deterministic replay. |
+- **Quantum Reality Simulation**  
+  Unified field tensor computations with FFI-accelerated Rust kernel
 
----
+- **Consciousness Emergence**  
+  Multi-agent AGI systems with emergent sentience modeling
 
-## 🧭 Architectural Principles
+- **Deterministic Physics**  
+  Seedable PRNG with cryptographic safety guarantees
 
-1. **Accessibility → Scalability** – CPU‑first design that seamlessly escalates to GPU/cluster.  
-2. **Modularity Everywhere** – swap any component (quantum back‑end, ethics module, UI).  
-3. **Radical Reproducibility** – deterministic seeds plus verifiable‑delay seeding & snapshotting.
+- **Enterprise Resilience**  
+  Military-grade security and transaction integrity
 
----
-
-## ⚡ Quick Start
-
-### 1. Install
-
+### Prerequisites
 ```bash
-git clone https://github.com/TaoishTechy/Celestial-Unification-Framework.git
-cd Celestial-Unification-Framework
-pip install -r requirements.txt     # numpy, scipy, msgpack, zstd, scikit‑learn …
-# Optional
-pip install cupy-cuda12x            # GPU support
-pip install mpi4py                  # Distributed backend
-pip install plotly bokeh            # Modern dashboard
+docker-compose v2.12+
+PHP 8.2 with FFI enabled
+OpenSSL 3.0+
 ```
 
-### 2. First Simulation
-
+### Installation
 ```bash
-python cuf_v8.py \
-  --page_count 256 \
-  --seed 2025 \
-  --quantum_backend mps \
-  --use_curses_ui
+# Clone repository
+git clone https://github.com/your-org/celestial-framework.git
+cd celestial-framework
+
+# Initialize environment
+cp .env.example .env
+openssl genrsa -aes256 -out storage/keys/private.pem 4096
+openssl rsa -in storage/keys/private.pem -pubout -out storage/keys/public.pem
+
+# Build and launch
+docker-compose up -d --build
+docker-compose exec app composer install
 ```
 
-#### Common Flags
+## 🧪 Running Simulations
 
-| Flag | Purpose |
-|------|---------|
-| `--page_count` | Quantum nodes per universe |
-| `--seed` | Deterministic master seed |
-| `--quantum_backend {mps,qft,dmrg}` | Entanglement solver |
-| `--use_gpu` | Enable CuPy acceleration |
-| `--use_curses_ui` | Legacy terminal HUD (omit for headless/modern UI) |
-
----
-
-## 🤝 Contributing
-
-We welcome researchers, developers, philosophers, artists and dreamers.
-
+### New Simulation (256 nodes, 10k cycles)
 ```bash
-# fork → feature branch
-git checkout -b feat/my‑idea
-# commit & push
-git commit -am "Add my-idea"
-git push origin feat/my‑idea
+docker-compose exec app php bin/celestial sim:run \
+  --nodes=256 \
+  --cycles=10000 \
+  --no-fallback
 ```
 
-### Gravitationally attractive TODOs:
-
-- Real DMRG or Pennylane back‑end  
-- Advanced Value‑Alignment datasets  
-- Plotly/Bokeh ModernDashboard  
-- Storyteller language‑model plug‑ins  
-- MPI / Ray shard controller & load balancer  
-
-Please read `CONTRIBUTING.md` for style & test guidelines.
-
----
-
-## 🔭 Roadmap
-
-| Milestone | ETA | Notes |
-|-----------|-----|-------|
-| **v8.1 – Dashboard Alpha** | Q3 2025 | Live Plotly metrics & SHAP panels |
-| **v8.2 – RL‑Driven AGIs** | Q4 2025 | Stable Baselines integration |
-| **v9.0 – Distributed Multiverse** | 2026 | Multi‑cluster, million‑node public demo |
-
----
-
-## 📜 Citation
-
-```bibtex
-@software{CUF_v8_2025,
-  author    = {Taoish Techy and the CUF Community},
-  title     = {Celestial Unification Framework v8.0},
-  year      = {2025},
-  howpublished = {\url{https://github.com/TaoishTechy/Celestial-Unification-Framework}}
-}
+### Resume Simulation
+```bash
+docker-compose exec app php bin/celestial sim:run \
+  --resume \
+  --checkpoint-path=storage/sim_20230721.sqlite
 ```
+
+### System Health Check
+```bash
+docker-compose exec app php bin/celestial sim:health
+```
+
+## 🏗️ Hexagonal Architecture
+
+
+## 🛡️ Production Protocols
+
+### FFI Library Verification
+```bash
+# Generate checksum
+FFI_LIB_PATH=$(realpath ./lib/libcelestial_kernel.so)
+FFI_LIB_CHECKSUM=$(sha256sum $FFI_LIB_PATH | awk '{ print $1 }')
+
+# Inject into environment
+echo "FFI_LIBRARY_PATH=$FFI_LIB_PATH" >> .env
+echo "FFI_LIBRARY_CHECKSUM=$FFI_LIB_CHECKSUM" >> .env
+```
+
+### Emergency State Recovery
+```python
+# scripts/emergency_state_recovery.py
+import json
+from celestial_infrastructure import QuantumStateRehydrator
+
+def recover_snapshot(snapshot_path: str) -> SimulationState:
+    with open(snapshot_path, 'r') as f:
+        state_data = json.load(f)
+    return QuantumStateRehydrator.validate_and_rebuild(state_data)
+```
+
+## 📜 License
+This project operates under MIT License. Commercial use requires granted exception - contact licensing@celestialframework.io.
