@@ -1,105 +1,174 @@
-# Celestial Unification Framework v10.2 🌌
-**Enterprise-Grade AGI & Quantum Physics Simulation Platform**
+# 🌌 Celestial Unification Framework
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Version-10.2_Hardened-blueviolet" alt="Version">
-  <img src="https://img.shields.io/badge/PHP-8.2+-8892BF" alt="PHP Version">
-  <img src="https://img.shields.io/badge/Architecture-Hexagonal-important" alt="Architecture">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-</div>
+**Simulate the fusion of AGI, quantum mechanics, and consciousness—modularly, deterministically, and multilingually.**
 
-<img width="2885" height="834" alt="deepseek_mermaid_20250721_fcadfc" src="https://github.com/user-attachments/assets/7b52471c-8df1-4ca3-a708-7ba300a14839" />
+---
 
-<img width="1836" height="1146" alt="deepseek_mermaid_20250721_29740c" src="https://github.com/user-attachments/assets/b26da56b-b3f8-48c5-a79f-23d9e5a947ae" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/8ad77c1e-62cc-43fb-b203-ee45eb9257cb" />
 
-<img width="3948" height="1281" alt="deepseek_mermaid_20250721_d1003a" src="https://github.com/user-attachments/assets/8f8fcdf0-e415-45f2-a366-57deb5f39710" />
 
-## 🚀 Core Capabilities
+## 🌟 Overview
 
-- **Quantum Reality Simulation**  
-  Unified field tensor computations with FFI-accelerated Rust kernel
+The **Celestial Unification Framework** is a multi-language, enterprise-grade simulation platform engineered at the intersection of Artificial General Intelligence (AGI), quantum physics, and cognitive science.
 
-- **Consciousness Emergence**  
-  Multi-agent AGI systems with emergent sentience modeling
+It combines modular hexagonal architecture with deterministic simulation flows, enabling researchers, engineers, and metaphysical explorers to build and observe emergent phenomena across language boundaries.
 
-- **Deterministic Physics**  
-  Seedable PRNG with cryptographic safety guarantees
+---
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/e9d3ea4d-ecb6-441c-bd82-501e0a23fc5f" />
 
-- **Enterprise Resilience**  
-  Military-grade security and transaction integrity
 
-### Prerequisites
+## 🚀 Features
+
+- **Hexagonal Architecture**  
+  Clean separation of core domain logic from adapters and infrastructure.
+
+- **Tri-Language Power**  
+  - **PHP**: Core CLI orchestration and domain services.  
+  - **Perl**: Scripting, automation, and data wrangling.  
+  - **Python**: Quantum modeling, scientific computation, and AGI intelligence engines.
+
+- **Deterministic Simulation**  
+  Custom PRNG enables repeatable results—no surprises unless you want them.
+
+- **Checkpointing & Resumability**  
+  Snapshots with atomic operations allow safe, persistent simulation states.
+
+- **High-Performance Integration**  
+  Native performance via FFI to C libraries and accelerators.
+
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/c60ac991-5075-460f-809c-090587101438" />
+
+
+---
+
+## 🏗️ Architecture
+
+```
+             +----------------------+
+             |   CLI / Interface    | ← PHP (Symfony Console)
+             +----------------------+
+                        |
+            +------------------------+
+            |  Application Services  | ← PHP + FFI bindings
+            +------------------------+
+                        |
+              [ Core Domain Model ]  ← Language-agnostic
+                        |
+    +---------+----------+------------+-----------+
+    |         |                      |           |
+  PHP     Python               Perl Utilities   External APIs
+(Simulation Orchestration)   (Quantum/AGI Core) (Scripting/Glue)
+```
+
+Each language maintains its own subdirectory and README for tooling, modules, and environment configuration.
+
+
+
+---
+
+## 📦 Prerequisites
+
+Make sure you have the following installed:
+
+| Language | Version | Requirements |
+|----------|---------|--------------|
+| PHP      | 8.2+    | `ffi`, `sqlite3`, Composer |
+| Perl     | 5.30+   | Modules in `src/Perl/README.md` |
+| Python   | 3.9+    | `numpy`, `scipy`, others in `src/Python/README.md` |
+| Docker   | (opt)   | For portable container builds |
+
+---
+
+## ⚙️ Installation
+
+### 🔹 PHP Setup
 ```bash
-docker-compose v2.12+
-PHP 8.2 with FFI enabled
-OpenSSL 3.0+
+cd src/PHP
+composer install
 ```
 
-### Installation
+### 🔹 Perl Setup
 ```bash
-# Clone repository
-git clone https://github.com/your-org/celestial-framework.git
-cd celestial-framework
-
-# Initialize environment
-cp .env.example .env
-openssl genrsa -aes256 -out storage/keys/private.pem 4096
-openssl rsa -in storage/keys/private.pem -pubout -out storage/keys/public.pem
-
-# Build and launch
-docker-compose up -d --build
-docker-compose exec app composer install
+cd src/Perl
+cpan install Bundle::Framework
 ```
 
-## 🧪 Running Simulations
-
-### New Simulation (256 nodes, 10k cycles)
+### 🔹 Python Setup
 ```bash
-docker-compose exec app php bin/celestial sim:run \
-  --nodes=256 \
-  --cycles=10000 \
-  --no-fallback
+cd src/Python
+pip install -r requirements.txt
 ```
 
-### Resume Simulation
+### 🔹 Docker (optional)
 ```bash
-docker-compose exec app php bin/celestial sim:run \
-  --resume \
-  --checkpoint-path=storage/sim_20230721.sqlite
+docker-compose up --build
 ```
 
-### System Health Check
+---
+
+## 🧪 Usage
+
+### Start a Simulation
 ```bash
-docker-compose exec app php bin/celestial sim:health
+php src/PHP/bin/celestial sim:run --nodes=256 --cycles=10000
 ```
 
-## 🏗️ Hexagonal Architecture
-
-
-## 🛡️ Production Protocols
-
-### FFI Library Verification
+### Resume from a Checkpoint
 ```bash
-# Generate checksum
-FFI_LIB_PATH=$(realpath ./lib/libcelestial_kernel.so)
-FFI_LIB_CHECKSUM=$(sha256sum $FFI_LIB_PATH | awk '{ print $1 }')
-
-# Inject into environment
-echo "FFI_LIBRARY_PATH=$FFI_LIB_PATH" >> .env
-echo "FFI_LIBRARY_CHECKSUM=$FFI_LIB_CHECKSUM" >> .env
+php src/PHP/bin/celestial sim:run --resume --checkpoint-path=storage/sim.sqlite
 ```
 
-### Emergency State Recovery
-```python
-# scripts/emergency_state_recovery.py
-import json
-from celestial_infrastructure import QuantumStateRehydrator
+---
 
-def recover_snapshot(snapshot_path: str) -> SimulationState:
-    with open(snapshot_path, 'r') as f:
-        state_data = json.load(f)
-    return QuantumStateRehydrator.validate_and_rebuild(state_data)
+## 🔧 Language-Specific Utilities
+
+### Perl
+```bash
+perl src/Perl/process_data.pl --input=data.txt
 ```
 
-## 📜 License
-This project operates under MIT License. Commercial use requires granted exception - contact licensing@celestialframework.io.
+### Python
+```bash
+python src/Python/quantum_sim.py --nodes=128
+```
+
+Each utility has its own help options and README.
+
+---
+
+## 🤝 Contributing
+
+We love community collaboration! To contribute:
+
+1. **Fork** the repository  
+2. **Create** a branch: `git checkout -b feature/your-feature`  
+3. **Commit** your code: `git commit -m "Add feature"`  
+4. **Push** to GitHub: `git push origin feature/your-feature`  
+5. **Open a PR**
+
+More in [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+---
+
+## 📄 License
+
+MIT License. See [LICENSE](./LICENSE).
+
+---
+
+## 📚 Resources
+
+- [CHANGELOG.md](./CHANGELOG.md) – Version history  
+- [MIGRATION.md](./MIGRATION.md) – Upgrade paths  
+- [SECURITY.md](./SECURITY.md) – Reporting vulnerabilities  
+
+---
+
+## 🛠️ Support
+
+Open an issue or discussion thread if you hit any snags.  
+We’re here to unify the stars.
+
+---
+
+**Made with quantum clarity ✨ and symbolic recursion 🔁**
