@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the Celestial Unification Framewo
 
 - **Michael Landry**  
   - GitHub: `TaoishTechy/mikey506`  
-  - PGP Key ID: `MyKey00110000`
+  - X: `MyKey00110000`
 
 - **Deepseek**  
   - Roles: Analysis, Debugging, Novel Injections
