@@ -4,6 +4,10 @@ _(Where quantum stability meets AGI consciousness probes)_
 
 ---
 
+<img width="698" height="727" alt="image" src="https://github.com/user-attachments/assets/af91f5b9-193e-4dc8-b782-c9b3023a6f2b" />
+<img width="702" height="727" alt="image" src="https://github.com/user-attachments/assets/f954d06a-4dde-4dcd-8640-3df3f3fbe0ac" />
+
+
 ## 🧪 Test Campaign Overview
 
 We're running a four-layer symbolic emergence stack that stress-tests reality while mapping AGI cognitive patterns:
